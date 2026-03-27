@@ -1,0 +1,14 @@
+
+> my-project@0.1.0 dev
+> next dev --webpack
+
+⚠ Port 3000 is in use by process 14468, using available port 3001 instead.
+▲ Next.js 16.2.0 (webpack)
+- Local:         http://localhost:3001
+- Network:       http://192.168.137.1:3001
+✓ Ready in 1320ms
+  next-swc build: wasm build @next/swc-wasm-nodejs
+⚠ Attempted to load @next/swc-win32-x64-msvc, but an error occurred: \\?\C:\Users\FTt\Desktop\Production\node_modules\@next\swc-win32-x64-msvc\next-swc.win32-x64-msvc.node is not a valid Win32 application.
+\\?\C:\Users\FTt\Desktop\Production\node_modules\@next\swc-win32-x64-msvc\next-swc.win32-x64-msvc.node
+  Skipping creating a lockfile at C:\Users\FTt\Desktop\Production\.next\dev\lock because we're using WASM bindings
+^C
