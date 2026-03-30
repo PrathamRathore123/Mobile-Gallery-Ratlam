@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import type { Product } from "@/lib/types/entities"
 import {
   getProductById,
@@ -21,13 +21,17 @@ function useProductsLoader(loader: () => Promise<Product[]>): DataState<Product[
   const [data, setData] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const hasLoadedRef = useRef(false)
 
   const refresh = useCallback(async () => {
     try {
-      setLoading(true)
+      if (!hasLoadedRef.current) {
+        setLoading(true)
+      }
       setError(null)
       const result = await loader()
       setData(result)
+      hasLoadedRef.current = true
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load products")
     } finally {

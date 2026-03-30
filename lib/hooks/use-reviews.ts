@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import type { Review } from "@/lib/types/entities"
 import { listActiveReviews, listFeaturedReviews, listReviews } from "@/lib/services/reviews"
 
@@ -8,12 +8,16 @@ function useReviewLoader(loader: () => Promise<Review[]>) {
   const [data, setData] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const hasLoadedRef = useRef(false)
 
   const refresh = useCallback(async () => {
     try {
-      setLoading(true)
+      if (!hasLoadedRef.current) {
+        setLoading(true)
+      }
       setError(null)
       setData(await loader())
+      hasLoadedRef.current = true
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load reviews")
     } finally {
