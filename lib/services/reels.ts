@@ -5,7 +5,6 @@ import {
   doc,
   getDoc,
   getDocs,
-  orderBy,
   query,
   serverTimestamp,
   updateDoc,
@@ -33,14 +32,27 @@ function mapReel(id: string, data: Record<string, unknown>): Reel {
   }
 }
 
+function compareBySortOrderAndCreatedAt(a: Reel, b: Reel): number {
+  if (a.sortOrder !== b.sortOrder) {
+    return a.sortOrder - b.sortOrder
+  }
+  const aCreated = a.createdAt?.getTime() ?? 0
+  const bCreated = b.createdAt?.getTime() ?? 0
+  return bCreated - aCreated
+}
+
 export async function listReels(): Promise<Reel[]> {
-  const snapshot = await getDocs(query(reelsRef, orderBy("sortOrder", "asc"), orderBy("createdAt", "desc")))
-  return snapshot.docs.map((docItem) => mapReel(docItem.id, docItem.data() as Record<string, unknown>))
+  const snapshot = await getDocs(reelsRef)
+  return snapshot.docs
+    .map((docItem) => mapReel(docItem.id, docItem.data() as Record<string, unknown>))
+    .sort(compareBySortOrderAndCreatedAt)
 }
 
 export async function listActiveReels(): Promise<Reel[]> {
-  const snapshot = await getDocs(query(reelsRef, where("active", "==", true), orderBy("sortOrder", "asc"), orderBy("createdAt", "desc")))
-  return snapshot.docs.map((docItem) => mapReel(docItem.id, docItem.data() as Record<string, unknown>))
+  const snapshot = await getDocs(query(reelsRef, where("active", "==", true)))
+  return snapshot.docs
+    .map((docItem) => mapReel(docItem.id, docItem.data() as Record<string, unknown>))
+    .sort(compareBySortOrderAndCreatedAt)
 }
 
 export async function getReelById(id: string): Promise<Reel | null> {

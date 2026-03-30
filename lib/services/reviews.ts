@@ -5,7 +5,6 @@ import {
   doc,
   getDoc,
   getDocs,
-  orderBy,
   query,
   serverTimestamp,
   updateDoc,
@@ -36,23 +35,30 @@ function mapReview(id: string, data: Record<string, unknown>): Review {
   }
 }
 
+function compareByCreatedAtDesc(a: Review, b: Review): number {
+  const aCreated = a.createdAt?.getTime() ?? 0
+  const bCreated = b.createdAt?.getTime() ?? 0
+  return bCreated - aCreated
+}
+
 export async function listReviews(): Promise<Review[]> {
-  const snapshot = await getDocs(query(reviewsRef, orderBy("createdAt", "desc")))
-  return snapshot.docs.map((docItem) => mapReview(docItem.id, docItem.data() as Record<string, unknown>))
+  const snapshot = await getDocs(reviewsRef)
+  return snapshot.docs
+    .map((docItem) => mapReview(docItem.id, docItem.data() as Record<string, unknown>))
+    .sort(compareByCreatedAtDesc)
 }
 
 export async function listActiveReviews(): Promise<Review[]> {
-  const snapshot = await getDocs(query(reviewsRef, where("active", "==", true), orderBy("createdAt", "desc")))
-  return snapshot.docs.map((docItem) => mapReview(docItem.id, docItem.data() as Record<string, unknown>))
+  const snapshot = await getDocs(query(reviewsRef, where("active", "==", true)))
+  return snapshot.docs
+    .map((docItem) => mapReview(docItem.id, docItem.data() as Record<string, unknown>))
+    .sort(compareByCreatedAtDesc)
 }
 
 export async function listFeaturedReviews(max = 6): Promise<Review[]> {
-  const snapshot = await getDocs(
-    query(reviewsRef, where("active", "==", true), where("featured", "==", true), orderBy("createdAt", "desc"))
-  )
-
-  return snapshot.docs
-    .map((docItem) => mapReview(docItem.id, docItem.data() as Record<string, unknown>))
+  const reviews = await listActiveReviews()
+  return reviews
+    .filter((review) => review.featured)
     .slice(0, max)
 }
 

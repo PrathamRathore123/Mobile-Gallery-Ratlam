@@ -16,6 +16,7 @@ interface FilterSheetProps {
   setSelectedBrands: (brands: string[]) => void
   priceRange: [number, number]
   setPriceRange: (range: [number, number]) => void
+  maxPrice: number
   onClear: () => void
   activeFiltersCount: number
 }
@@ -31,6 +32,7 @@ export function FilterSheet({
   setSelectedBrands,
   priceRange,
   setPriceRange,
+  maxPrice,
   onClear,
   activeFiltersCount,
 }: FilterSheetProps) {
@@ -137,8 +139,8 @@ export function FilterSheet({
               <input
                 type="range"
                 min="0"
-                max="2000"
-                value={priceRange[1]}
+                max={maxPrice}
+                value={Math.min(priceRange[1], maxPrice)}
                 onChange={(e) =>
                   setPriceRange([priceRange[0], parseInt(e.target.value)])
                 }

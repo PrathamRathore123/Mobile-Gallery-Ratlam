@@ -51,7 +51,8 @@ export function useActiveProducts() {
 }
 
 export function useFeaturedProducts(max = 4) {
-  return useProductsLoader(() => listFeaturedProducts(max))
+  const loader = useCallback(() => listFeaturedProducts(max), [max])
+  return useProductsLoader(loader)
 }
 
 export function useProductById(productId: string) {

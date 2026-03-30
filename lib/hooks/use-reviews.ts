@@ -37,5 +37,6 @@ export function useActiveReviews() {
 }
 
 export function useFeaturedReviews(max = 3) {
-  return useReviewLoader(() => listFeaturedReviews(max))
+  const loader = useCallback(() => listFeaturedReviews(max), [max])
+  return useReviewLoader(loader)
 }

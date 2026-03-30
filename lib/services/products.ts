@@ -5,8 +5,6 @@ import {
   doc,
   getDoc,
   getDocs,
-  limit,
-  orderBy,
   query,
   serverTimestamp,
   updateDoc,
@@ -71,23 +69,31 @@ function mapProduct(id: string, data: Record<string, unknown>): Product {
   }
 }
 
+function compareByCreatedAtDesc(a: Product, b: Product): number {
+  const aCreated = a.createdAt?.getTime() ?? 0
+  const bCreated = b.createdAt?.getTime() ?? 0
+  return bCreated - aCreated
+}
+
 const productsRef = collection(db, COLLECTIONS.products)
 
 export async function listProducts(): Promise<Product[]> {
-  const snapshot = await getDocs(query(productsRef, orderBy("createdAt", "desc")))
-  return snapshot.docs.map((docItem) => mapProduct(docItem.id, docItem.data() as Record<string, unknown>))
+  const snapshot = await getDocs(productsRef)
+  return snapshot.docs
+    .map((docItem) => mapProduct(docItem.id, docItem.data() as Record<string, unknown>))
+    .sort(compareByCreatedAtDesc)
 }
 
 export async function listActiveProducts(): Promise<Product[]> {
-  const snapshot = await getDocs(query(productsRef, where("active", "==", true), orderBy("createdAt", "desc")))
-  return snapshot.docs.map((docItem) => mapProduct(docItem.id, docItem.data() as Record<string, unknown>))
+  const snapshot = await getDocs(query(productsRef, where("active", "==", true)))
+  return snapshot.docs
+    .map((docItem) => mapProduct(docItem.id, docItem.data() as Record<string, unknown>))
+    .sort(compareByCreatedAtDesc)
 }
 
 export async function listFeaturedProducts(max = 4): Promise<Product[]> {
-  const snapshot = await getDocs(
-    query(productsRef, where("active", "==", true), where("featured", "==", true), orderBy("createdAt", "desc"), limit(max))
-  )
-  return snapshot.docs.map((docItem) => mapProduct(docItem.id, docItem.data() as Record<string, unknown>))
+  const products = await listActiveProducts()
+  return products.filter((product) => product.featured).slice(0, max)
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
@@ -99,16 +105,9 @@ export async function getProductById(id: string): Promise<Product | null> {
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
-  const snapshot = await getDocs(
-    query(productsRef, where("slug", "==", slug), where("active", "==", true), limit(1))
-  )
-
-  if (snapshot.empty) {
-    return null
-  }
-
-  const docItem = snapshot.docs[0]
-  return mapProduct(docItem.id, docItem.data() as Record<string, unknown>)
+  const activeProducts = await listActiveProducts()
+  const product = activeProducts.find((item) => item.slug === slug)
+  return product ?? null
 }
 
 export async function createProduct(input: ProductInput): Promise<string> {

@@ -5,6 +5,8 @@ import Image from "next/image"
 import { Plus, Search, Pencil, Trash2, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Skeleton } from "@/components/ui/skeleton"
+import { CloudinaryUpload } from "@/components/admin/cloudinary-upload"
 import { useProducts } from "@/lib/hooks/use-products"
 import { useCategories } from "@/lib/hooks/use-categories"
 import { createProduct, deleteProduct, updateProduct } from "@/lib/services/products"
@@ -99,20 +101,11 @@ function formToInput(form: ProductFormState): ProductInput {
       .filter(Boolean)
       .map((line) => {
         const [label, ...rest] = line.split(":")
-        return {
-          label: label.trim(),
-          value: rest.join(":").trim(),
-        }
+        return { label: label.trim(), value: rest.join(":").trim() }
       })
       .filter((item) => item.label && item.value),
-    colors: form.colors
-      .split(",")
-      .map((item) => item.trim())
-      .filter(Boolean),
-    storageOptions: form.storageOptions
-      .split(",")
-      .map((item) => item.trim())
-      .filter(Boolean),
+    colors: form.colors.split(",").map((item) => item.trim()).filter(Boolean),
+    storageOptions: form.storageOptions.split(",").map((item) => item.trim()).filter(Boolean),
     rating: Number(form.rating) || 4.8,
     reviewCount: Number(form.reviewCount) || 0,
     featured: form.featured,
@@ -121,8 +114,13 @@ function formToInput(form: ProductFormState): ProductInput {
   }
 }
 
+function appendImageLines(current: string, urls: string[]) {
+  const lines = current.split("\n").map((item) => item.trim()).filter(Boolean)
+  return [...lines, ...urls].join("\n")
+}
+
 export default function AdminProductsPage() {
-  const { data: products, loading, refresh } = useProducts()
+  const { data: products, loading, error, refresh } = useProducts()
   const { data: categories } = useCategories()
 
   const [searchQuery, setSearchQuery] = useState("")
@@ -134,11 +132,10 @@ export default function AdminProductsPage() {
   const filteredProducts = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
     if (!query) return products
-
-    return products.filter((product) => {
-      return product.title.toLowerCase().includes(query) || product.brand.toLowerCase().includes(query)
-    })
+    return products.filter((product) => product.title.toLowerCase().includes(query) || product.brand.toLowerCase().includes(query))
   }, [products, searchQuery])
+
+  const imageList = useMemo(() => form.images.split("\n").map((item) => item.trim()).filter(Boolean), [form.images])
 
   const openCreate = () => {
     setEditing(null)
@@ -154,17 +151,14 @@ export default function AdminProductsPage() {
 
   const handleSave = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-
     try {
       setSaving(true)
       const payload = formToInput(form)
-
       if (editing) {
         await updateProduct(editing.id, payload)
       } else {
         await createProduct(payload)
       }
-
       await refresh()
       setFormOpen(false)
       setEditing(null)
@@ -175,9 +169,7 @@ export default function AdminProductsPage() {
   }
 
   const handleDelete = async (id: string) => {
-    const confirmed = window.confirm("Delete this product?")
-    if (!confirmed) return
-
+    if (!window.confirm("Delete this product?")) return
     await deleteProduct(id)
     await refresh()
   }
@@ -197,13 +189,10 @@ export default function AdminProductsPage() {
 
       <div className="relative mb-6">
         <Search className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Search products"
-          value={searchQuery}
-          onChange={(event) => setSearchQuery(event.target.value)}
-          className="h-12 rounded-2xl pl-10"
-        />
+        <Input placeholder="Search products" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} className="h-12 rounded-2xl pl-10" />
       </div>
+
+      {error ? <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{error}</div> : null}
 
       <div className="overflow-x-auto rounded-2xl border border-border bg-card">
         <table className="w-full min-w-[680px]">
@@ -217,26 +206,32 @@ export default function AdminProductsPage() {
             </tr>
           </thead>
           <tbody>
-            {!loading && filteredProducts.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-sm text-muted-foreground">
-                  No products found.
-                </td>
+            {loading ? Array.from({ length: 5 }).map((_, idx) => (
+              <tr key={idx} className="border-t border-border">
+                <td className="px-4 py-4"><Skeleton className="h-10 w-48" /></td>
+                <td className="px-4 py-4"><Skeleton className="h-4 w-24" /></td>
+                <td className="px-4 py-4"><Skeleton className="h-4 w-20" /></td>
+                <td className="px-4 py-4"><Skeleton className="h-6 w-20 rounded-full" /></td>
+                <td className="px-4 py-4"><div className="flex justify-end"><Skeleton className="h-8 w-28" /></div></td>
               </tr>
-            )}
-            {filteredProducts.map((product) => {
+            )) : null}
+
+            {!loading && filteredProducts.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-4 py-10 text-center text-sm text-muted-foreground">No products found.</td>
+              </tr>
+            ) : null}
+
+            {!loading ? filteredProducts.map((product) => {
               const category = categories.find((item) => item.id === product.categoryId)
               const image = product.images[0]
               const finalPrice = product.salePrice ?? product.price
-
               return (
                 <tr key={product.id} className="border-t border-border text-sm">
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-3">
                       <div className="relative size-12 overflow-hidden rounded-xl bg-secondary">
-                        {image ? (
-                          <Image src={image} alt={product.title} fill className="object-cover" />
-                        ) : null}
+                        {image ? <Image src={image} alt={product.title} fill className="object-cover" /> : null}
                       </div>
                       <div>
                         <p className="font-medium">{product.title}</p>
@@ -245,34 +240,19 @@ export default function AdminProductsPage() {
                     </div>
                   </td>
                   <td className="px-4 py-4">{category?.name ?? "Uncategorized"}</td>
+                  <td className="px-4 py-4">${finalPrice.toLocaleString()}</td>
                   <td className="px-4 py-4">
-                    ${finalPrice.toLocaleString()}
-                    {product.salePrice ? (
-                      <span className="ml-2 text-xs text-muted-foreground line-through">
-                        ${product.price.toLocaleString()}
-                      </span>
-                    ) : null}
-                  </td>
-                  <td className="px-4 py-4">
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${product.active ? "bg-green-100 text-green-700" : "bg-slate-200 text-slate-700"}`}>
-                      {product.active ? "Active" : "Inactive"}
-                    </span>
+                    <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${product.active ? "bg-green-100 text-green-700" : "bg-slate-200 text-slate-700"}`}>{product.active ? "Active" : "Inactive"}</span>
                   </td>
                   <td className="px-4 py-4">
                     <div className="flex justify-end gap-2">
-                      <Button variant="outline" size="sm" className="gap-1" onClick={() => openEdit(product)}>
-                        <Pencil className="size-4" />
-                        Edit
-                      </Button>
-                      <Button variant="destructive" size="sm" className="gap-1" onClick={() => handleDelete(product.id)}>
-                        <Trash2 className="size-4" />
-                        Delete
-                      </Button>
+                      <Button variant="outline" size="sm" className="gap-1" onClick={() => openEdit(product)}><Pencil className="size-4" />Edit</Button>
+                      <Button variant="destructive" size="sm" className="gap-1" onClick={() => handleDelete(product.id)}><Trash2 className="size-4" />Delete</Button>
                     </div>
                   </td>
                 </tr>
               )
-            })}
+            }) : null}
           </tbody>
         </table>
       </div>
@@ -282,115 +262,66 @@ export default function AdminProductsPage() {
           <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-border bg-background">
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background px-6 py-4">
               <h2 className="text-xl font-bold">{editing ? "Edit Product" : "Add Product"}</h2>
-              <Button variant="ghost" size="icon" className="rounded-full" onClick={() => setFormOpen(false)}>
-                <X className="size-5" />
-              </Button>
+              <Button variant="ghost" size="icon" className="rounded-full" onClick={() => setFormOpen(false)}><X className="size-5" /></Button>
             </div>
 
             <form onSubmit={handleSave} className="space-y-5 p-6">
               <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="mb-2 block text-sm font-medium">Title</label>
-                  <Input value={form.title} onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} required />
-                </div>
-                <div>
-                  <label className="mb-2 block text-sm font-medium">Slug</label>
-                  <Input value={form.slug} onChange={(event) => setForm((prev) => ({ ...prev, slug: event.target.value }))} required />
-                </div>
+                <div><label className="mb-2 block text-sm font-medium">Title</label><Input value={form.title} onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} required /></div>
+                <div><label className="mb-2 block text-sm font-medium">Slug</label><Input value={form.slug} onChange={(event) => setForm((prev) => ({ ...prev, slug: event.target.value }))} required /></div>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="mb-2 block text-sm font-medium">Brand</label>
-                  <Input value={form.brand} onChange={(event) => setForm((prev) => ({ ...prev, brand: event.target.value }))} />
-                </div>
+                <div><label className="mb-2 block text-sm font-medium">Brand</label><Input value={form.brand} onChange={(event) => setForm((prev) => ({ ...prev, brand: event.target.value }))} /></div>
                 <div>
                   <label className="mb-2 block text-sm font-medium">Category</label>
-                  <select
-                    className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                    value={form.categoryId}
-                    onChange={(event) => setForm((prev) => ({ ...prev, categoryId: event.target.value }))}
-                    required
-                  >
+                  <select className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={form.categoryId} onChange={(event) => setForm((prev) => ({ ...prev, categoryId: event.target.value }))} required>
                     <option value="">Select category</option>
-                    {categories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
+                    {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
                   </select>
                 </div>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="mb-2 block text-sm font-medium">Price</label>
-                  <Input type="number" value={form.price} onChange={(event) => setForm((prev) => ({ ...prev, price: event.target.value }))} required />
-                </div>
-                <div>
-                  <label className="mb-2 block text-sm font-medium">Sale Price (optional)</label>
-                  <Input type="number" value={form.salePrice} onChange={(event) => setForm((prev) => ({ ...prev, salePrice: event.target.value }))} />
-                </div>
+                <div><label className="mb-2 block text-sm font-medium">Price</label><Input type="number" value={form.price} onChange={(event) => setForm((prev) => ({ ...prev, price: event.target.value }))} required /></div>
+                <div><label className="mb-2 block text-sm font-medium">Sale Price (optional)</label><Input type="number" value={form.salePrice} onChange={(event) => setForm((prev) => ({ ...prev, salePrice: event.target.value }))} /></div>
               </div>
 
-              <div>
-                <label className="mb-2 block text-sm font-medium">Short Description</label>
-                <Input value={form.shortDescription} onChange={(event) => setForm((prev) => ({ ...prev, shortDescription: event.target.value }))} required />
-              </div>
+              <div><label className="mb-2 block text-sm font-medium">Short Description</label><Input value={form.shortDescription} onChange={(event) => setForm((prev) => ({ ...prev, shortDescription: event.target.value }))} required /></div>
+              <div><label className="mb-2 block text-sm font-medium">Full Description</label><textarea className="min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.fullDescription} onChange={(event) => setForm((prev) => ({ ...prev, fullDescription: event.target.value }))} required /></div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium">Full Description</label>
-                <textarea
-                  className="min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  value={form.fullDescription}
-                  onChange={(event) => setForm((prev) => ({ ...prev, fullDescription: event.target.value }))}
-                  required
-                />
+                <div className="mb-2 flex items-center justify-between">
+                  <label className="block text-sm font-medium">Product Images</label>
+                  <CloudinaryUpload multiple buttonText="Upload to Cloudinary" onUploaded={(urls) => setForm((prev) => ({ ...prev, images: appendImageLines(prev.images, urls) }))} />
+                </div>
+                <textarea className="min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.images} onChange={(event) => setForm((prev) => ({ ...prev, images: event.target.value }))} placeholder="One image URL per line" />
+                {imageList.length > 0 ? (
+                  <div className="mt-3 grid grid-cols-4 gap-2">
+                    {imageList.map((url) => (
+                      <div key={url} className="group relative overflow-hidden rounded-lg border border-border">
+                        <div className="relative aspect-square"><Image src={url} alt="Product" fill className="object-cover" /></div>
+                        <button type="button" className="absolute right-1 top-1 hidden rounded bg-background/90 px-1 text-xs group-hover:block" onClick={() => setForm((prev) => ({ ...prev, images: prev.images.split("\n").map((item) => item.trim()).filter((item) => item && item !== url).join("\n") }))}>x</button>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
               </div>
+
+              <div><label className="mb-2 block text-sm font-medium">Highlights (one per line)</label><textarea className="min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.highlights} onChange={(event) => setForm((prev) => ({ ...prev, highlights: event.target.value }))} /></div>
+              <div><label className="mb-2 block text-sm font-medium">Specifications (format: Label: Value)</label><textarea className="min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.specifications} onChange={(event) => setForm((prev) => ({ ...prev, specifications: event.target.value }))} /></div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="mb-2 block text-sm font-medium">Image URLs (one per line)</label>
-                  <textarea className="min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.images} onChange={(event) => setForm((prev) => ({ ...prev, images: event.target.value }))} />
-                </div>
-                <div>
-                  <label className="mb-2 block text-sm font-medium">Highlights (one per line)</label>
-                  <textarea className="min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.highlights} onChange={(event) => setForm((prev) => ({ ...prev, highlights: event.target.value }))} />
-                </div>
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-medium">Specifications (format: Label: Value)</label>
-                <textarea className="min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.specifications} onChange={(event) => setForm((prev) => ({ ...prev, specifications: event.target.value }))} />
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="mb-2 block text-sm font-medium">Colors (comma separated)</label>
-                  <Input value={form.colors} onChange={(event) => setForm((prev) => ({ ...prev, colors: event.target.value }))} />
-                </div>
-                <div>
-                  <label className="mb-2 block text-sm font-medium">Storage Options (comma separated)</label>
-                  <Input value={form.storageOptions} onChange={(event) => setForm((prev) => ({ ...prev, storageOptions: event.target.value }))} />
-                </div>
+                <div><label className="mb-2 block text-sm font-medium">Colors (comma separated)</label><Input value={form.colors} onChange={(event) => setForm((prev) => ({ ...prev, colors: event.target.value }))} /></div>
+                <div><label className="mb-2 block text-sm font-medium">Storage Options (comma separated)</label><Input value={form.storageOptions} onChange={(event) => setForm((prev) => ({ ...prev, storageOptions: event.target.value }))} /></div>
               </div>
 
               <div className="grid gap-4 md:grid-cols-3">
-                <div>
-                  <label className="mb-2 block text-sm font-medium">Rating</label>
-                  <Input type="number" step="0.1" value={form.rating} onChange={(event) => setForm((prev) => ({ ...prev, rating: event.target.value }))} />
-                </div>
-                <div>
-                  <label className="mb-2 block text-sm font-medium">Review Count</label>
-                  <Input type="number" value={form.reviewCount} onChange={(event) => setForm((prev) => ({ ...prev, reviewCount: event.target.value }))} />
-                </div>
+                <div><label className="mb-2 block text-sm font-medium">Rating</label><Input type="number" step="0.1" value={form.rating} onChange={(event) => setForm((prev) => ({ ...prev, rating: event.target.value }))} /></div>
+                <div><label className="mb-2 block text-sm font-medium">Review Count</label><Input type="number" value={form.reviewCount} onChange={(event) => setForm((prev) => ({ ...prev, reviewCount: event.target.value }))} /></div>
                 <div>
                   <label className="mb-2 block text-sm font-medium">Stock Status</label>
-                  <select
-                    className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                    value={form.stockStatus}
-                    onChange={(event) => setForm((prev) => ({ ...prev, stockStatus: event.target.value as StockStatus }))}
-                  >
+                  <select className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={form.stockStatus} onChange={(event) => setForm((prev) => ({ ...prev, stockStatus: event.target.value as StockStatus }))}>
                     <option value="in_stock">In Stock</option>
                     <option value="out_of_stock">Out of Stock</option>
                     <option value="preorder">Preorder</option>
@@ -399,23 +330,13 @@ export default function AdminProductsPage() {
               </div>
 
               <div className="flex flex-wrap gap-5">
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={form.featured} onChange={(event) => setForm((prev) => ({ ...prev, featured: event.target.checked }))} />
-                  Featured
-                </label>
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={form.active} onChange={(event) => setForm((prev) => ({ ...prev, active: event.target.checked }))} />
-                  Active
-                </label>
+                <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.featured} onChange={(event) => setForm((prev) => ({ ...prev, featured: event.target.checked }))} /> Featured</label>
+                <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.active} onChange={(event) => setForm((prev) => ({ ...prev, active: event.target.checked }))} /> Active</label>
               </div>
 
               <div className="flex justify-end gap-2 border-t border-border pt-4">
-                <Button type="button" variant="outline" onClick={() => setFormOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={saving}>
-                  {saving ? "Saving..." : editing ? "Save Changes" : "Create Product"}
-                </Button>
+                <Button type="button" variant="outline" onClick={() => setFormOpen(false)}>Cancel</Button>
+                <Button type="submit" disabled={saving}>{saving ? "Saving..." : editing ? "Save Changes" : "Create Product"}</Button>
               </div>
             </form>
           </div>

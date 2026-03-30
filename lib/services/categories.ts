@@ -5,7 +5,6 @@ import {
   doc,
   getDoc,
   getDocs,
-  orderBy,
   query,
   serverTimestamp,
   updateDoc,
@@ -31,14 +30,27 @@ function mapCategory(id: string, data: Record<string, unknown>): Category {
   }
 }
 
+function compareBySortOrderAndCreatedAt(a: Category, b: Category): number {
+  if (a.sortOrder !== b.sortOrder) {
+    return a.sortOrder - b.sortOrder
+  }
+  const aCreated = a.createdAt?.getTime() ?? 0
+  const bCreated = b.createdAt?.getTime() ?? 0
+  return bCreated - aCreated
+}
+
 export async function listCategories(): Promise<Category[]> {
-  const snapshot = await getDocs(query(categoriesRef, orderBy("sortOrder", "asc"), orderBy("createdAt", "desc")))
-  return snapshot.docs.map((docItem) => mapCategory(docItem.id, docItem.data() as Record<string, unknown>))
+  const snapshot = await getDocs(categoriesRef)
+  return snapshot.docs
+    .map((docItem) => mapCategory(docItem.id, docItem.data() as Record<string, unknown>))
+    .sort(compareBySortOrderAndCreatedAt)
 }
 
 export async function listActiveCategories(): Promise<Category[]> {
-  const snapshot = await getDocs(query(categoriesRef, where("active", "==", true), orderBy("sortOrder", "asc"), orderBy("createdAt", "desc")))
-  return snapshot.docs.map((docItem) => mapCategory(docItem.id, docItem.data() as Record<string, unknown>))
+  const snapshot = await getDocs(query(categoriesRef, where("active", "==", true)))
+  return snapshot.docs
+    .map((docItem) => mapCategory(docItem.id, docItem.data() as Record<string, unknown>))
+    .sort(compareBySortOrderAndCreatedAt)
 }
 
 export async function getCategoryById(id: string): Promise<Category | null> {

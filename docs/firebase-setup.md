@@ -43,25 +43,24 @@ Because writes are admin-protected by rules, create first admin directly in Fire
 
 After this, login at `/admin/login` with that auth account.
 
-## 5) Settings seed (recommended)
-Create `settings/main` document:
-- `businessName`
-- `whatsappNumber`
-- `instagramUrl`
-- `heroTitle`
-- `heroSubtitle`
-- `supportText`
-- `updatedAt` (timestamp)
+## 5) Seed initial storefront data
+1. Login as admin.
+2. Open `/admin/seed`.
+3. Click `Run Seed` to insert starter categories/products/reels/reviews.
+4. Optional: enable `Force overwrite existing data` if you want to refresh records.
 
-## 6) Cloudinary setup
-1. Create an unsigned upload preset in Cloudinary.
-2. Restrict allowed formats and size in Cloudinary dashboard.
-3. Use that preset name in `.env.local`.
+Seed source: `lib/constants/seed-data.ts`
+
+## 6) Cloudinary upload flow
+- Admin forms for Products, Categories, and Reels now include direct Cloudinary upload buttons.
+- Uploaded URL is inserted into the form automatically.
+- Keep unsigned upload preset restricted by format/size in Cloudinary dashboard.
 
 ## 7) Local run + validation
 ```bash
 npm install
 npm run lint
+npm run build
 npm run dev
 ```
 
