@@ -54,7 +54,9 @@ export function Footer() {
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
               <li className="flex items-center gap-2"><MessageCircle className="size-4" /> +{whatsappNumber}</li>
               <li className="flex items-center gap-2"><Mail className="size-4" /> {siteConfig.supportEmail}</li>
-              <li className="flex items-center gap-2"><MapPin className="size-4" /> {siteConfig.address}</li>
+              <a href="https://maps.app.goo.gl/xhFbRw2BmCQRdjza6" target="_blank" rel="noreferrer">
+                <li className="flex items-center gap-2"><MapPin className="size-4" /> {siteConfig.address}</li>
+              </a>
             </ul>
           </div>
         </div>
