@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Plus, Minus, Trash2, ShoppingBag, MessageCircle, ArrowLeft } from "lucide-react"
 import { buildWhatsAppOrderMessage, buildWhatsAppUrl } from "@/lib/helpers/whatsapp"
 import { formatINR } from "@/lib/helpers/currency"
+import { trackClientEvent } from "@/lib/helpers/analytics-client"
 import { useWhatsAppNumber } from "@/lib/hooks/use-whatsapp-number"
 
 export default function CartPage() {
@@ -25,6 +26,12 @@ export default function CartPage() {
       })),
       total: totalPrice,
     })
+
+    void trackClientEvent({
+      eventType: "whatsapp_click",
+      value: totalPrice,
+      extra: "cart_page",
+    }).catch(() => {})
 
     window.open(buildWhatsAppUrl(whatsappNumber, message), "_blank")
   }

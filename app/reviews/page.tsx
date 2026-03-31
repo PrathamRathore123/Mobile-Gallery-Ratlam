@@ -8,6 +8,7 @@ import { Star, ThumbsUp, CheckCircle } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useActiveReviews } from "@/lib/hooks/use-reviews"
 import { submitPublicReview } from "@/lib/services/reviews"
+import { trackClientEvent } from "@/lib/helpers/analytics-client"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
@@ -50,6 +51,9 @@ export default function ReviewsPage() {
         comment: "",
         sourceUrl: "",
       })
+      void trackClientEvent({
+        eventType: "review_submit",
+      }).catch(() => {})
       setSubmitMessage({
         type: "success",
         text: "Thanks! Your review was submitted successfully.",

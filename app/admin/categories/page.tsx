@@ -55,8 +55,8 @@ export default function AdminCategoriesPage() {
   }
 
   return (
-    <div className="p-6 lg:p-8">
-      <div className="mb-8">
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="mb-6 md:mb-8">
         <h1 className="text-2xl font-bold md:text-3xl">Categories</h1>
         <p className="mt-1 text-muted-foreground">Manage category taxonomy for storefront filtering.</p>
       </div>
@@ -74,18 +74,45 @@ export default function AdminCategoriesPage() {
           {form.image ? <div className="relative h-12 w-12 overflow-hidden rounded-md border border-border"><Image src={form.image} alt="Category" fill className="object-cover" /></div> : null}
         </div>
 
-        <div className="mt-4 flex items-center justify-between">
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.active} onChange={(event) => setForm((prev) => ({ ...prev, active: event.target.checked }))} />Active</label>
-          <div className="flex gap-2">
-            {editingId ? <Button type="button" variant="outline" onClick={() => { setEditingId(null); setForm(emptyForm) }}>Cancel</Button> : null}
-            <Button type="submit" className="gap-2" disabled={saving}><Plus className="size-4" />{saving ? "Saving..." : editingId ? "Update Category" : "Add Category"}</Button>
+          <div className="flex w-full gap-2 sm:w-auto">
+            {editingId ? <Button type="button" variant="outline" onClick={() => { setEditingId(null); setForm(emptyForm) }} className="flex-1 sm:flex-none">Cancel</Button> : null}
+            <Button type="submit" className="flex-1 gap-2 sm:flex-none" disabled={saving}><Plus className="size-4" />{saving ? "Saving..." : editingId ? "Update Category" : "Add Category"}</Button>
           </div>
         </div>
       </form>
 
       {error ? <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{error}</div> : null}
 
-      <div className="overflow-x-auto rounded-2xl border border-border bg-card">
+      <div className="space-y-3 md:hidden">
+        {loading ? Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="rounded-2xl border border-border bg-card p-4">
+            <Skeleton className="h-5 w-32" />
+            <Skeleton className="mt-2 h-4 w-24" />
+          </div>
+        )) : null}
+        {!loading && data.length === 0 ? <div className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">No categories yet.</div> : null}
+        {!loading ? data.map((item) => (
+          <div key={item.id} className="rounded-2xl border border-border bg-card p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate font-semibold">{item.name}</p>
+                <p className="mt-1 text-xs text-muted-foreground">/{item.slug}</p>
+                <p className="mt-1 text-xs text-muted-foreground">Sort: {item.sortOrder}</p>
+              </div>
+              {item.image ? <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-border"><Image src={item.image} alt={item.name} fill className="object-cover" /></div> : null}
+            </div>
+            <div className="mt-2 text-xs text-muted-foreground">{item.active ? "Active" : "Inactive"}</div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <Button variant="outline" size="sm" className="gap-1" onClick={() => handleEdit(item)}><Pencil className="size-4" />Edit</Button>
+              <Button variant="destructive" size="sm" className="gap-1" onClick={() => handleDelete(item.id)}><Trash2 className="size-4" />Delete</Button>
+            </div>
+          </div>
+        )) : null}
+      </div>
+
+      <div className="hidden overflow-x-auto rounded-2xl border border-border bg-card md:block">
         <table className="w-full min-w-[560px]">
           <thead><tr className="bg-secondary/40 text-left text-sm text-muted-foreground"><th className="px-4 py-3">Name</th><th className="px-4 py-3">Slug</th><th className="px-4 py-3">Sort</th><th className="px-4 py-3">Status</th><th className="px-4 py-3 text-right">Actions</th></tr></thead>
           <tbody>

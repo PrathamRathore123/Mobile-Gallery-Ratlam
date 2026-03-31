@@ -7,6 +7,7 @@ import { useCart } from "@/lib/cart-context"
 import { cn } from "@/lib/utils"
 import { buildWhatsAppOrderMessage, buildWhatsAppUrl } from "@/lib/helpers/whatsapp"
 import { formatINR } from "@/lib/helpers/currency"
+import { trackClientEvent } from "@/lib/helpers/analytics-client"
 import { useWhatsAppNumber } from "@/lib/hooks/use-whatsapp-number"
 
 export function CartDrawer() {
@@ -22,6 +23,12 @@ export function CartDrawer() {
       })),
       total: totalPrice,
     })
+
+    void trackClientEvent({
+      eventType: "whatsapp_click",
+      value: totalPrice,
+      extra: "cart_drawer",
+    }).catch(() => {})
 
     window.open(buildWhatsAppUrl(whatsappNumber, message), "_blank")
   }

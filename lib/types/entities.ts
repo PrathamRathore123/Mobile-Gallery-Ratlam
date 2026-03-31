@@ -151,7 +151,15 @@ export interface SettingsInput {
   supportText: string
 }
 
-export type AnalyticsEventType = "page_view"
+export type AnalyticsEventType =
+  | "page_view"
+  | "product_view"
+  | "add_to_cart"
+  | "remove_from_cart"
+  | "whatsapp_click"
+  | "review_submit"
+  | "shop_filter"
+  | "shop_sort"
 
 export interface AnalyticsEvent {
   id: string
@@ -159,5 +167,8 @@ export interface AnalyticsEvent {
   pagePath: string
   sessionId: string
   referrer: string | null
+  productId: string | null
+  value: number | null
+  extra: string | null
   createdAt: Date | null
 }

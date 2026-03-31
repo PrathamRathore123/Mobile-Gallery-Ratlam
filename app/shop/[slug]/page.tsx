@@ -1,6 +1,6 @@
 "use client"
 
-import { use, useMemo, useState } from "react"
+import { use, useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Header } from "@/components/header"
@@ -14,6 +14,7 @@ import { useActiveReviews } from "@/lib/hooks/use-reviews"
 import { useWhatsAppNumber } from "@/lib/hooks/use-whatsapp-number"
 import { buildWhatsAppOrderMessage, buildWhatsAppUrl } from "@/lib/helpers/whatsapp"
 import { formatINR } from "@/lib/helpers/currency"
+import { trackClientEvent } from "@/lib/helpers/analytics-client"
 import { Star, ChevronLeft, ChevronRight, Check, ShoppingBag, MessageCircle } from "lucide-react"
 
 export default function ProductDetailPage({
@@ -31,6 +32,7 @@ export default function ProductDetailPage({
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [selectedColor, setSelectedColor] = useState("")
   const [selectedStorage, setSelectedStorage] = useState("")
+  const trackedProductViewRef = useRef<string | null>(null)
 
   const productReviews = useMemo(() => {
     if (!product) return []
@@ -41,6 +43,18 @@ export default function ProductDetailPage({
     if (!product) return []
     return allProducts.filter((item) => item.categoryId === product.categoryId && item.id !== product.id).slice(0, 4)
   }, [allProducts, product])
+
+  useEffect(() => {
+    if (!product) return
+    if (trackedProductViewRef.current === product.id) return
+    trackedProductViewRef.current = product.id
+
+    void trackClientEvent({
+      eventType: "product_view",
+      productId: product.id,
+      value: product.salePrice ?? product.price,
+    }).catch(() => {})
+  }, [product])
 
   if (loading) {
     return (
@@ -95,6 +109,13 @@ export default function ProductDetailPage({
       items: [{ title: label, quantity: 1, unitPrice: finalPrice }],
       total: finalPrice,
     })
+
+    void trackClientEvent({
+      eventType: "whatsapp_click",
+      productId: product.id,
+      value: finalPrice,
+      extra: "product_detail",
+    }).catch(() => {})
 
     window.open(buildWhatsAppUrl(whatsappNumber, message), "_blank")
   }

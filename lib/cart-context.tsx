@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
 import { removeLocalStorage, writeLocalStorage } from "@/lib/helpers/local-storage"
+import { trackClientEvent } from "@/lib/helpers/analytics-client"
 
 const CART_STORAGE_KEY = "mobile-gallery-cart"
 
@@ -66,10 +67,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return [...prev, { ...newItem, quantity: 1 }]
     })
     setIsOpen(true)
+    void trackClientEvent({
+      eventType: "add_to_cart",
+      productId: newItem.id,
+      value: newItem.price,
+    }).catch(() => {})
   }, [])
 
   const removeItem = useCallback((id: string) => {
     setItems((prev) => prev.filter((item) => item.id !== id))
+    void trackClientEvent({
+      eventType: "remove_from_cart",
+      productId: id,
+    }).catch(() => {})
   }, [])
 
   const updateQuantity = useCallback((id: string, quantity: number) => {

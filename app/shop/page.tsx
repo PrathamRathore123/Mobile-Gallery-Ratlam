@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Header } from "@/components/header"
 import { MobileNav } from "@/components/mobile-nav"
 import { Footer } from "@/components/footer"
@@ -13,6 +13,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useActiveProducts } from "@/lib/hooks/use-products"
 import { useActiveCategories } from "@/lib/hooks/use-categories"
 import { formatINR } from "@/lib/helpers/currency"
+import { trackClientEvent } from "@/lib/helpers/analytics-client"
 
 const sortOptions = [
   { label: "Featured", value: "featured" },
@@ -35,6 +36,9 @@ export default function ShopPage() {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 0])
   const [hasTouchedPrice, setHasTouchedPrice] = useState(false)
   const [sortBy, setSortBy] = useState("featured")
+  const isFirstSortRender = useRef(true)
+  const isFirstFilterRender = useRef(true)
+  const lastFilterKeyRef = useRef("")
 
   const brands = useMemo(() => Array.from(new Set(products.map((product) => product.brand).filter(Boolean))), [products])
   const maxPrice = useMemo(() => {
@@ -90,6 +94,46 @@ export default function ShopPage() {
     selectedCategories.length +
     selectedBrands.length +
     (hasTouchedPrice && (effectiveMinPrice > 0 || effectiveMaxPrice < maxPrice) ? 1 : 0)
+
+  useEffect(() => {
+    if (isFirstSortRender.current) {
+      isFirstSortRender.current = false
+      return
+    }
+
+    void trackClientEvent({
+      eventType: "shop_sort",
+      extra: sortBy,
+    }).catch(() => {})
+  }, [sortBy])
+
+  useEffect(() => {
+    const filterKey = JSON.stringify({
+      categories: selectedCategories.slice().sort(),
+      brands: selectedBrands.slice().sort(),
+      min: effectiveMinPrice,
+      max: effectiveMaxPrice,
+      touchedPrice: hasTouchedPrice,
+    })
+
+    if (isFirstFilterRender.current) {
+      isFirstFilterRender.current = false
+      lastFilterKeyRef.current = filterKey
+      return
+    }
+
+    if (lastFilterKeyRef.current === filterKey) return
+    lastFilterKeyRef.current = filterKey
+
+    const timeout = window.setTimeout(() => {
+      void trackClientEvent({
+        eventType: "shop_filter",
+        extra: filterKey,
+      }).catch(() => {})
+    }, 350)
+
+    return () => window.clearTimeout(timeout)
+  }, [selectedCategories, selectedBrands, effectiveMinPrice, effectiveMaxPrice, hasTouchedPrice])
 
   return (
     <div className="flex min-h-screen flex-col">

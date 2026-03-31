@@ -72,9 +72,21 @@ service cloud.firestore {
                'pagePath',
                'sessionId',
                'referrer',
+               'productId',
+               'value',
+               'extra',
                'createdAt'
              ]) &&
-             request.resource.data.eventType == 'page_view' &&
+             (
+               request.resource.data.eventType == 'page_view' ||
+               request.resource.data.eventType == 'product_view' ||
+               request.resource.data.eventType == 'add_to_cart' ||
+               request.resource.data.eventType == 'remove_from_cart' ||
+               request.resource.data.eventType == 'whatsapp_click' ||
+               request.resource.data.eventType == 'review_submit' ||
+               request.resource.data.eventType == 'shop_filter' ||
+               request.resource.data.eventType == 'shop_sort'
+             ) &&
              request.resource.data.pagePath is string &&
              request.resource.data.pagePath.size() > 0 &&
              request.resource.data.pagePath.size() <= 200 &&
@@ -84,6 +96,15 @@ service cloud.firestore {
              (request.resource.data.referrer == null ||
               (request.resource.data.referrer is string &&
                request.resource.data.referrer.size() <= 500)) &&
+             (request.resource.data.productId == null ||
+              (request.resource.data.productId is string &&
+               request.resource.data.productId.size() <= 200)) &&
+             (request.resource.data.extra == null ||
+              (request.resource.data.extra is string &&
+               request.resource.data.extra.size() <= 1000)) &&
+             (request.resource.data.value == null ||
+              request.resource.data.value is int ||
+              request.resource.data.value is float) &&
              request.resource.data.createdAt is timestamp;
     }
 

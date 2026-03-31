@@ -176,13 +176,13 @@ export default function AdminProductsPage() {
   }
 
   return (
-    <div className="p-6 lg:p-8">
-      <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="mb-6 flex flex-col justify-between gap-4 md:mb-8 md:flex-row md:items-center">
         <div>
           <h1 className="text-2xl font-bold md:text-3xl">Products</h1>
           <p className="mt-1 text-muted-foreground">Create, edit, and publish product listings.</p>
         </div>
-        <Button className="gap-2 rounded-2xl" onClick={openCreate}>
+        <Button className="w-full gap-2 rounded-2xl sm:w-auto" onClick={openCreate}>
           <Plus className="size-4" />
           Add Product
         </Button>
@@ -195,7 +195,51 @@ export default function AdminProductsPage() {
 
       {error ? <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{error}</div> : null}
 
-      <div className="overflow-x-auto rounded-2xl border border-border bg-card">
+      <div className="mb-3 text-xs text-muted-foreground md:hidden">Tip: cards are optimized for mobile. Use desktop for full table view.</div>
+
+      <div className="space-y-3 md:hidden">
+        {loading ? Array.from({ length: 4 }).map((_, idx) => (
+          <div key={idx} className="rounded-2xl border border-border bg-card p-4">
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="mt-2 h-4 w-28" />
+            <Skeleton className="mt-4 h-16 w-full" />
+          </div>
+        )) : null}
+
+        {!loading && filteredProducts.length === 0 ? (
+          <div className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">No products found.</div>
+        ) : null}
+
+        {!loading ? filteredProducts.map((product) => {
+          const category = categories.find((item) => item.id === product.categoryId)
+          const image = product.images[0]
+          const finalPrice = product.salePrice ?? product.price
+          return (
+            <div key={product.id} className="rounded-2xl border border-border bg-card p-4">
+              <div className="flex items-start gap-3">
+                <div className="relative size-14 shrink-0 overflow-hidden rounded-xl bg-secondary">
+                  {image ? <Image src={image} alt={product.title} fill className="object-cover" /> : null}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold">{product.title}</p>
+                  <p className="truncate text-xs text-muted-foreground">{product.brand || "Brand not set"}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{category?.name ?? "Uncategorized"}</p>
+                </div>
+                <span className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${product.active ? "bg-green-100 text-green-700" : "bg-slate-200 text-slate-700"}`}>
+                  {product.active ? "Active" : "Inactive"}
+                </span>
+              </div>
+              <div className="mt-3 text-lg font-bold">{formatINR(finalPrice)}</div>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <Button variant="outline" size="sm" className="gap-1" onClick={() => openEdit(product)}><Pencil className="size-4" />Edit</Button>
+                <Button variant="destructive" size="sm" className="gap-1" onClick={() => handleDelete(product.id)}><Trash2 className="size-4" />Delete</Button>
+              </div>
+            </div>
+          )
+        }) : null}
+      </div>
+
+      <div className="hidden overflow-x-auto rounded-2xl border border-border bg-card md:block">
         <table className="w-full min-w-[680px]">
           <thead>
             <tr className="bg-secondary/40 text-left text-sm text-muted-foreground">
@@ -261,12 +305,12 @@ export default function AdminProductsPage() {
       {formOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/50 p-4 backdrop-blur-sm">
           <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-border bg-background">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background px-6 py-4">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background px-4 py-4 sm:px-6">
               <h2 className="text-xl font-bold">{editing ? "Edit Product" : "Add Product"}</h2>
               <Button variant="ghost" size="icon" className="rounded-full" onClick={() => setFormOpen(false)}><X className="size-5" /></Button>
             </div>
 
-            <form onSubmit={handleSave} className="space-y-5 p-6">
+            <form onSubmit={handleSave} className="space-y-5 p-4 sm:p-6">
               <div className="grid gap-4 md:grid-cols-2">
                 <div><label className="mb-2 block text-sm font-medium">Title</label><Input value={form.title} onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} required /></div>
                 <div><label className="mb-2 block text-sm font-medium">Slug</label><Input value={form.slug} onChange={(event) => setForm((prev) => ({ ...prev, slug: event.target.value }))} required /></div>
@@ -298,7 +342,7 @@ export default function AdminProductsPage() {
                 </div>
                 <textarea className="min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.images} onChange={(event) => setForm((prev) => ({ ...prev, images: event.target.value }))} placeholder="One image URL per line" />
                 {imageList.length > 0 ? (
-                  <div className="mt-3 grid grid-cols-4 gap-2">
+                  <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
                     {imageList.map((url) => (
                       <div key={url} className="group relative overflow-hidden rounded-lg border border-border">
                         <div className="relative aspect-square"><Image src={url} alt="Product" fill className="object-cover" /></div>
@@ -335,9 +379,9 @@ export default function AdminProductsPage() {
                 <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.active} onChange={(event) => setForm((prev) => ({ ...prev, active: event.target.checked }))} /> Active</label>
               </div>
 
-              <div className="flex justify-end gap-2 border-t border-border pt-4">
-                <Button type="button" variant="outline" onClick={() => setFormOpen(false)}>Cancel</Button>
-                <Button type="submit" disabled={saving}>{saving ? "Saving..." : editing ? "Save Changes" : "Create Product"}</Button>
+              <div className="flex flex-col-reverse gap-2 border-t border-border pt-4 sm:flex-row sm:justify-end">
+                <Button type="button" variant="outline" onClick={() => setFormOpen(false)} className="w-full sm:w-auto">Cancel</Button>
+                <Button type="submit" disabled={saving} className="w-full sm:w-auto">{saving ? "Saving..." : editing ? "Save Changes" : "Create Product"}</Button>
               </div>
             </form>
           </div>

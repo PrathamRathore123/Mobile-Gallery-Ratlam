@@ -8,25 +8,47 @@ import {
 } from "firebase/firestore"
 import { COLLECTIONS } from "@/lib/constants/collections"
 import { db } from "@/lib/firebase/client"
-import { stringOrDefault, toDate } from "@/lib/firebase/parsers"
+import { numberOrDefault, stringOrDefault, toDate } from "@/lib/firebase/parsers"
 import type { AnalyticsEvent, AnalyticsEventType } from "@/lib/types/entities"
 
-interface TrackPageViewInput {
+interface TrackAnalyticsEventInput {
+  eventType: AnalyticsEventType
   pagePath: string
   sessionId: string
   referrer?: string | null
+  productId?: string | null
+  value?: number | null
+  extra?: string | null
 }
 
 const analyticsRef = collection(db, COLLECTIONS.analyticsEvents)
 
+const validEventTypes: AnalyticsEventType[] = [
+  "page_view",
+  "product_view",
+  "add_to_cart",
+  "remove_from_cart",
+  "whatsapp_click",
+  "review_submit",
+  "shop_filter",
+  "shop_sort",
+]
+
 function mapAnalyticsEvent(id: string, data: Record<string, unknown>): AnalyticsEvent {
   const referrer = data.referrer
+  const productId = data.productId
+  const extra = data.extra
+  const eventType = data.eventType as AnalyticsEventType
+
   return {
     id,
-    eventType: (data.eventType as AnalyticsEventType) === "page_view" ? "page_view" : "page_view",
+    eventType: validEventTypes.includes(eventType) ? eventType : "page_view",
     pagePath: stringOrDefault(data.pagePath),
     sessionId: stringOrDefault(data.sessionId),
     referrer: typeof referrer === "string" ? referrer : null,
+    productId: typeof productId === "string" ? productId : null,
+    value: data.value == null ? null : numberOrDefault(data.value, 0),
+    extra: typeof extra === "string" ? extra : null,
     createdAt: toDate(data.createdAt),
   }
 }
@@ -37,17 +59,31 @@ function sortByCreatedAtDesc(a: AnalyticsEvent, b: AnalyticsEvent): number {
   return bTime - aTime
 }
 
-export async function trackPageView({
+export async function trackAnalyticsEvent({
+  eventType,
   pagePath,
   sessionId,
   referrer = null,
-}: TrackPageViewInput): Promise<void> {
+  productId = null,
+  value = null,
+  extra = null,
+}: TrackAnalyticsEventInput): Promise<void> {
   await addDoc(analyticsRef, {
-    eventType: "page_view",
+    eventType,
     pagePath,
     sessionId,
     referrer,
+    productId,
+    value,
+    extra,
     createdAt: serverTimestamp(),
+  })
+}
+
+export async function trackPageView(input: Omit<TrackAnalyticsEventInput, "eventType">): Promise<void> {
+  await trackAnalyticsEvent({
+    ...input,
+    eventType: "page_view",
   })
 }
 
@@ -75,3 +111,4 @@ export function subscribeAnalyticsEvents(
     }
   )
 }
+

@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
   LayoutDashboard,
+  BarChart3,
   Package,
   FolderTree,
   Video,
@@ -23,6 +24,7 @@ import { logoutAdmin } from "@/lib/auth/admin-auth"
 
 const navItems = [
   { href: "/admin", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/admin/analytics", icon: BarChart3, label: "Analytics" },
   { href: "/admin/products", icon: Package, label: "Products" },
   { href: "/admin/categories", icon: FolderTree, label: "Categories" },
   { href: "/admin/reels", icon: Video, label: "Reels" },

@@ -41,8 +41,8 @@ export default function AdminReelsPage() {
   const handleDelete = async (id: string) => { if (!window.confirm("Delete this reel?")) return; await deleteReel(id); await refresh() }
 
   return (
-    <div className="p-6 lg:p-8">
-      <div className="mb-8"><h1 className="text-2xl font-bold md:text-3xl">Reels</h1><p className="mt-1 text-muted-foreground">Manage Instagram/social proof reel entries.</p></div>
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="mb-6 md:mb-8"><h1 className="text-2xl font-bold md:text-3xl">Reels</h1><p className="mt-1 text-muted-foreground">Manage Instagram/social proof reel entries.</p></div>
 
       <form onSubmit={handleSubmit} className="mb-6 rounded-2xl border border-border bg-card p-5">
         <div className="grid gap-4 md:grid-cols-2">
@@ -64,16 +64,42 @@ export default function AdminReelsPage() {
             <label className="flex items-center gap-2"><input type="checkbox" checked={form.active} onChange={(event) => setForm((prev) => ({ ...prev, active: event.target.checked }))} />Active</label>
             <label className="flex items-center gap-2"><input type="checkbox" checked={form.featured} onChange={(event) => setForm((prev) => ({ ...prev, featured: event.target.checked }))} />Featured</label>
           </div>
-          <div className="flex gap-2">
-            {editingId ? <Button type="button" variant="outline" onClick={() => { setEditingId(null); setForm(emptyForm) }}>Cancel</Button> : null}
-            <Button type="submit" className="gap-2" disabled={saving}><Plus className="size-4" />{saving ? "Saving..." : editingId ? "Update Reel" : "Add Reel"}</Button>
+          <div className="flex w-full gap-2 sm:w-auto">
+            {editingId ? <Button type="button" variant="outline" onClick={() => { setEditingId(null); setForm(emptyForm) }} className="flex-1 sm:flex-none">Cancel</Button> : null}
+            <Button type="submit" className="flex-1 gap-2 sm:flex-none" disabled={saving}><Plus className="size-4" />{saving ? "Saving..." : editingId ? "Update Reel" : "Add Reel"}</Button>
           </div>
         </div>
       </form>
 
       {error ? <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{error}</div> : null}
 
-      <div className="overflow-x-auto rounded-2xl border border-border bg-card">
+      <div className="space-y-3 md:hidden">
+        {loading ? Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="rounded-2xl border border-border bg-card p-4">
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="mt-2 h-4 w-24" />
+          </div>
+        )) : null}
+        {!loading && data.length === 0 ? <div className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">No reels yet.</div> : null}
+        {!loading ? data.map((item) => (
+          <div key={item.id} className="rounded-2xl border border-border bg-card p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate font-semibold">{item.title}</p>
+                <a href={item.reelUrl} target="_blank" rel="noreferrer" className="mt-1 inline-block text-xs text-accent hover:underline">Open reel link</a>
+                <p className="mt-1 text-xs text-muted-foreground">{item.active ? "Active" : "Inactive"} / {item.featured ? "Featured" : "Normal"}</p>
+              </div>
+              {item.thumbnail ? <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-border"><Image src={item.thumbnail} alt={item.title} fill className="object-cover" /></div> : null}
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <Button variant="outline" size="sm" className="gap-1" onClick={() => handleEdit(item)}><Pencil className="size-4" />Edit</Button>
+              <Button variant="destructive" size="sm" className="gap-1" onClick={() => handleDelete(item.id)}><Trash2 className="size-4" />Delete</Button>
+            </div>
+          </div>
+        )) : null}
+      </div>
+
+      <div className="hidden overflow-x-auto rounded-2xl border border-border bg-card md:block">
         <table className="w-full min-w-[640px]">
           <thead><tr className="bg-secondary/40 text-left text-sm text-muted-foreground"><th className="px-4 py-3">Title</th><th className="px-4 py-3">Reel URL</th><th className="px-4 py-3">Flags</th><th className="px-4 py-3 text-right">Actions</th></tr></thead>
           <tbody>
