@@ -2,12 +2,12 @@ export const siteConfig = {
   name: 'Mobile Gallery',
   shortName: 'MG',
   description:
-    'Premium smartphones, accessories, and expert WhatsApp support. Mobile-first shopping built for fast decisions.',
+    'Premium smartphones and accessories from Mobile Gallery, a mobile shop in Ratlam with WhatsApp-first ordering.',
   whatsappNumber: '919876543210',
   whatsappDisplay: '+91 98765 43210',
   instagramUrl: 'https://instagram.com/mobilegallery',
   supportEmail: 'hello@mobilegallery.store',
-  address: 'Sector 18, Noida, India',
+  address: 'Ratlam, Madhya Pradesh, India',
 }
 
 export const primaryNav = [

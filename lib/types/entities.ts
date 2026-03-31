@@ -135,6 +135,13 @@ export interface ReviewInput {
   active: boolean
 }
 
+export interface PublicReviewInput {
+  customerName: string
+  rating: number
+  comment: string
+  sourceUrl?: string | null
+}
+
 export interface SettingsInput {
   businessName: string
   whatsappNumber: string
@@ -142,4 +149,15 @@ export interface SettingsInput {
   heroTitle: string
   heroSubtitle: string
   supportText: string
+}
+
+export type AnalyticsEventType = "page_view"
+
+export interface AnalyticsEvent {
+  id: string
+  eventType: AnalyticsEventType
+  pagePath: string
+  sessionId: string
+  referrer: string | null
+  createdAt: Date | null
 }

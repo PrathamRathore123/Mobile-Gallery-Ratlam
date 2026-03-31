@@ -13,6 +13,7 @@ import { useProductBySlug, useActiveProducts } from "@/lib/hooks/use-products"
 import { useActiveReviews } from "@/lib/hooks/use-reviews"
 import { useWhatsAppNumber } from "@/lib/hooks/use-whatsapp-number"
 import { buildWhatsAppOrderMessage, buildWhatsAppUrl } from "@/lib/helpers/whatsapp"
+import { formatINR } from "@/lib/helpers/currency"
 import { Star, ChevronLeft, ChevronRight, Check, ShoppingBag, MessageCircle } from "lucide-react"
 
 export default function ProductDetailPage({
@@ -175,8 +176,8 @@ export default function ProductDetailPage({
               </div>
 
               <div className="flex items-baseline gap-3">
-                <span className="text-3xl font-bold">${finalPrice.toLocaleString()}</span>
-                {product.salePrice ? <span className="text-xl text-muted-foreground line-through">${product.price.toLocaleString()}</span> : null}
+                <span className="text-3xl font-bold">{formatINR(finalPrice)}</span>
+                {product.salePrice ? <span className="text-xl text-muted-foreground line-through">{formatINR(product.price)}</span> : null}
               </div>
 
               <div className="flex items-center gap-2">

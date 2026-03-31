@@ -2,9 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import type { Review } from "@/lib/types/entities"
-import { listActiveReviews, listFeaturedReviews, listReviews } from "@/lib/services/reviews"
+import { listActiveReviews, listFeaturedReviews, listReviews, subscribeActiveReviews, subscribeReviews } from "@/lib/services/reviews"
 
-function useReviewLoader(loader: () => Promise<Review[]>) {
+type ReviewSubscriber = (
+  onData: (reviews: Review[]) => void,
+  onError?: (error: Error) => void
+) => () => void
+
+function useReviewLoader(loader: () => Promise<Review[]>, subscriber?: ReviewSubscriber) {
   const [data, setData] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -26,21 +31,52 @@ function useReviewLoader(loader: () => Promise<Review[]>) {
   }, [loader])
 
   useEffect(() => {
-    void refresh()
-  }, [refresh])
+    if (!subscriber) {
+      void refresh()
+      return
+    }
+
+    setError(null)
+    const unsubscribe = subscriber(
+      (reviews) => {
+        setData(reviews)
+        hasLoadedRef.current = true
+        setLoading(false)
+      },
+      (err) => {
+        setError(err instanceof Error ? err.message : "Failed to load reviews")
+        setLoading(false)
+      }
+    )
+
+    return () => {
+      unsubscribe()
+    }
+  }, [refresh, subscriber])
 
   return { data, loading, error, refresh }
 }
 
 export function useReviews() {
-  return useReviewLoader(listReviews)
+  return useReviewLoader(listReviews, subscribeReviews)
 }
 
 export function useActiveReviews() {
-  return useReviewLoader(listActiveReviews)
+  return useReviewLoader(listActiveReviews, subscribeActiveReviews)
 }
 
 export function useFeaturedReviews(max = 3) {
   const loader = useCallback(() => listFeaturedReviews(max), [max])
-  return useReviewLoader(loader)
+  const subscriber = useCallback<ReviewSubscriber>(
+    (onData, onError) =>
+      subscribeActiveReviews(
+        (reviews) => {
+          onData(reviews.filter((review) => review.featured).slice(0, max))
+        },
+        onError
+      ),
+    [max]
+  )
+
+  return useReviewLoader(loader, subscriber)
 }

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { useCart } from "@/lib/cart-context"
 import { cn } from "@/lib/utils"
 import { buildWhatsAppOrderMessage, buildWhatsAppUrl } from "@/lib/helpers/whatsapp"
+import { formatINR } from "@/lib/helpers/currency"
 import { useWhatsAppNumber } from "@/lib/hooks/use-whatsapp-number"
 
 export function CartDrawer() {
@@ -69,7 +70,7 @@ export function CartDrawer() {
                   <div className="min-w-0 flex-1">
                     <h3 className="truncate text-sm font-medium">{item.name}</h3>
                     {item.color ? <p className="text-xs text-muted-foreground">{item.color}</p> : null}
-                    <p className="mt-1 font-bold">${item.price.toLocaleString()}</p>
+                    <p className="mt-1 font-bold">{formatINR(item.price)}</p>
                     <div className="mt-2 flex items-center gap-2">
                       <Button variant="outline" size="icon" className="size-7 rounded-full" onClick={() => updateQuantity(item.id, item.quantity - 1)}>
                         <Minus className="size-3" />
@@ -98,7 +99,7 @@ export function CartDrawer() {
           <div className="space-y-4 border-t border-border p-4">
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Subtotal</span>
-              <span className="text-xl font-bold">${totalPrice.toLocaleString()}</span>
+              <span className="text-xl font-bold">{formatINR(totalPrice)}</span>
             </div>
             <div className="grid gap-2">
               <Button className="h-12 w-full gap-2 rounded-2xl bg-[#25D366] text-white hover:bg-[#128C7E]" onClick={handleWhatsAppOrder}>

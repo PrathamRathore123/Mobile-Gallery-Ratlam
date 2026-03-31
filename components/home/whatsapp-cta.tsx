@@ -37,10 +37,10 @@ export function WhatsAppCTA() {
                   <Button
                     variant="outline"
                     size="lg"
-                    className="h-14 gap-2 rounded-2xl border-white/30 px-8 text-white hover:bg-white/10"
+                    className="h-14 gap-2 rounded-2xl border-white/30 text-[#25D366]  px-8"
                     onClick={() => window.open(`tel:${whatsappNumber}`)}
                   >
-                    <Phone className="size-5" />
+                    <Phone className=" text-[#25D366] size-5" />
                     Call Us
                   </Button>
                 </div>

@@ -5,6 +5,7 @@ export const COLLECTIONS = {
   reels: "reels",
   reviews: "reviews",
   settings: "settings",
+  analyticsEvents: "analytics_events",
 } as const
 
 export const SETTINGS_DOC_ID = "main"

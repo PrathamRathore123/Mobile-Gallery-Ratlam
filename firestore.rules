@@ -17,6 +17,76 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
+    function isValidPublicReviewCreate() {
+      return request.resource.data.keys().hasAll([
+               'customerName',
+               'rating',
+               'comment',
+               'sourceUrl',
+               'productId',
+               'featured',
+               'active',
+               'createdAt',
+               'updatedAt'
+             ]) &&
+             request.resource.data.keys().hasOnly([
+               'customerName',
+               'rating',
+               'comment',
+               'sourceUrl',
+               'productId',
+               'featured',
+               'active',
+               'createdAt',
+               'updatedAt'
+             ]) &&
+             request.resource.data.customerName is string &&
+             request.resource.data.customerName.size() >= 2 &&
+             request.resource.data.customerName.size() <= 80 &&
+             (request.resource.data.rating is int || request.resource.data.rating is float) &&
+             request.resource.data.rating >= 1 &&
+             request.resource.data.rating <= 5 &&
+             request.resource.data.comment is string &&
+             request.resource.data.comment.size() >= 10 &&
+             request.resource.data.comment.size() <= 1000 &&
+             (request.resource.data.sourceUrl == null ||
+              (request.resource.data.sourceUrl is string &&
+               request.resource.data.sourceUrl.size() <= 500)) &&
+             request.resource.data.productId == null &&
+             request.resource.data.featured == false &&
+             request.resource.data.active == true &&
+             request.resource.data.createdAt is timestamp &&
+             request.resource.data.updatedAt is timestamp;
+    }
+
+    function isValidAnalyticsEventCreate() {
+      return request.resource.data.keys().hasAll([
+               'eventType',
+               'pagePath',
+               'sessionId',
+               'referrer',
+               'createdAt'
+             ]) &&
+             request.resource.data.keys().hasOnly([
+               'eventType',
+               'pagePath',
+               'sessionId',
+               'referrer',
+               'createdAt'
+             ]) &&
+             request.resource.data.eventType == 'page_view' &&
+             request.resource.data.pagePath is string &&
+             request.resource.data.pagePath.size() > 0 &&
+             request.resource.data.pagePath.size() <= 200 &&
+             request.resource.data.sessionId is string &&
+             request.resource.data.sessionId.size() > 0 &&
+             request.resource.data.sessionId.size() <= 120 &&
+             (request.resource.data.referrer == null ||
+              (request.resource.data.referrer is string &&
+               request.resource.data.referrer.size() <= 500)) &&
+             request.resource.data.createdAt is timestamp;
+    }
+
     match /admins/{uid} {
       allow read: if isActiveAdmin() || isSelf(uid);
       allow create, update, delete: if isActiveAdmin();
@@ -39,12 +109,18 @@ service cloud.firestore {
 
     match /reviews/{docId} {
       allow read: if (resource.data.active == true) || isActiveAdmin();
-      allow create, update, delete: if isActiveAdmin();
+      allow create: if isActiveAdmin() || isValidPublicReviewCreate();
+      allow update, delete: if isActiveAdmin();
     }
 
     match /settings/{docId} {
       allow read: if true;
       allow create, update, delete: if isActiveAdmin();
+    }
+
+    match /analytics_events/{docId} {
+      allow create: if isValidAnalyticsEventCreate();
+      allow read, update, delete: if isActiveAdmin();
     }
   }
 }

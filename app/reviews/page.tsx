@@ -1,14 +1,27 @@
 "use client"
 
+import { useState } from "react"
 import { Header } from "@/components/header"
 import { MobileNav } from "@/components/mobile-nav"
 import { Footer } from "@/components/footer"
 import { Star, ThumbsUp, CheckCircle } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useActiveReviews } from "@/lib/hooks/use-reviews"
+import { submitPublicReview } from "@/lib/services/reviews"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/button"
 
 export default function ReviewsPage() {
   const { data: reviews, loading, error } = useActiveReviews()
+  const [form, setForm] = useState({
+    customerName: "",
+    rating: "5",
+    comment: "",
+    sourceUrl: "",
+  })
+  const [submitting, setSubmitting] = useState(false)
+  const [submitMessage, setSubmitMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
 
   const total = reviews.length
   const average = total === 0 ? 0 : reviews.reduce((sum, review) => sum + review.rating, 0) / total
@@ -17,6 +30,39 @@ export default function ReviewsPage() {
     const percentage = total === 0 ? 0 : Math.round((count / total) * 100)
     return { stars, percentage }
   })
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setSubmitting(true)
+    setSubmitMessage(null)
+
+    try {
+      await submitPublicReview({
+        customerName: form.customerName,
+        rating: Number(form.rating),
+        comment: form.comment,
+        sourceUrl: form.sourceUrl || null,
+      })
+
+      setForm({
+        customerName: "",
+        rating: "5",
+        comment: "",
+        sourceUrl: "",
+      })
+      setSubmitMessage({
+        type: "success",
+        text: "Thanks! Your review was submitted successfully.",
+      })
+    } catch (submitError) {
+      setSubmitMessage({
+        type: "error",
+        text: submitError instanceof Error ? submitError.message : "Failed to submit review. Please try again.",
+      })
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -48,6 +94,74 @@ export default function ReviewsPage() {
                 <div className="rounded-xl bg-background p-4"><p className="text-2xl font-bold text-accent">100%</p><p className="text-sm text-muted-foreground">Authentic Products</p></div>
               </div>
             </div>
+          </div>
+
+          <div className="mb-12 rounded-2xl border border-border bg-card p-6 md:p-8">
+            <div className="mb-5">
+              <h2 className="text-xl font-semibold md:text-2xl">Write a Review</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Share your experience. Your review will be visible after approval.</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <Input
+                  placeholder="Your name"
+                  value={form.customerName}
+                  onChange={(event) => setForm((prev) => ({ ...prev, customerName: event.target.value }))}
+                  required
+                  minLength={2}
+                  maxLength={80}
+                />
+                <label className="space-y-2 text-sm">
+                  <span className="block font-medium">Rating</span>
+                  <select
+                    className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                    value={form.rating}
+                    onChange={(event) => setForm((prev) => ({ ...prev, rating: event.target.value }))}
+                  >
+                    <option value="5">5 - Excellent</option>
+                    <option value="4">4 - Very Good</option>
+                    <option value="3">3 - Good</option>
+                    <option value="2">2 - Fair</option>
+                    <option value="1">1 - Poor</option>
+                  </select>
+                </label>
+              </div>
+
+              <Textarea
+                placeholder="Write your review..."
+                value={form.comment}
+                onChange={(event) => setForm((prev) => ({ ...prev, comment: event.target.value }))}
+                required
+                minLength={10}
+                maxLength={1000}
+                className="min-h-28"
+              />
+
+              <Input
+                placeholder="Source URL (optional)"
+                value={form.sourceUrl}
+                onChange={(event) => setForm((prev) => ({ ...prev, sourceUrl: event.target.value }))}
+              />
+
+              {submitMessage ? (
+                <div
+                  className={`rounded-xl border p-3 text-sm ${
+                    submitMessage.type === "success"
+                      ? "border-green-300 bg-green-50 text-green-700"
+                      : "border-destructive/30 bg-destructive/10 text-destructive"
+                  }`}
+                >
+                  {submitMessage.text}
+                </div>
+              ) : null}
+
+              <div className="flex justify-end">
+                <Button type="submit" disabled={submitting}>
+                  {submitting ? "Submitting..." : "Submit Review"}
+                </Button>
+              </div>
+            </form>
           </div>
 
           <div className="space-y-6">

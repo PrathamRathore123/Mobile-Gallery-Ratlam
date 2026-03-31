@@ -21,12 +21,12 @@ export function buildWhatsAppOrderMessage({
   items,
   total,
   customer,
-  currencySymbol = "$",
+  currencySymbol = "₹",
 }: BuildMessageInput): string {
   const lines = items
     .map((item, index) => {
       const lineTotal = item.unitPrice * item.quantity
-      return `${index + 1}. ${item.title} x${item.quantity} - ${currencySymbol}${lineTotal.toLocaleString()}`
+      return `${index + 1}. ${item.title} x${item.quantity} - ${currencySymbol}${lineTotal.toLocaleString("en-IN")}`
     })
     .join("\n")
 
@@ -43,7 +43,7 @@ export function buildWhatsAppOrderMessage({
     "",
     lines,
     "",
-    `Total: ${currencySymbol}${total.toLocaleString()}`,
+    `Total: ${currencySymbol}${total.toLocaleString("en-IN")}`,
     customerLines ? `\n${customerLines}` : "",
   ]
     .filter(Boolean)

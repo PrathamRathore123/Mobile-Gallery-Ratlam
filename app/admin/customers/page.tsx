@@ -20,7 +20,7 @@ const customers = [
     phone: "+1 234 567 890",
     avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
     orders: 5,
-    totalSpent: "$4,567",
+    totalSpent: "₹4,567",
     lastOrder: "2 days ago",
   },
   {
@@ -30,7 +30,7 @@ const customers = [
     phone: "+1 234 567 891",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop",
     orders: 3,
-    totalSpent: "$2,897",
+    totalSpent: "₹2,897",
     lastOrder: "1 week ago",
   },
   {
@@ -40,7 +40,7 @@ const customers = [
     phone: "+1 234 567 892",
     avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop",
     orders: 7,
-    totalSpent: "$6,234",
+    totalSpent: "₹6,234",
     lastOrder: "3 days ago",
   },
   {
@@ -50,7 +50,7 @@ const customers = [
     phone: "+1 234 567 893",
     avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop",
     orders: 2,
-    totalSpent: "$1,498",
+    totalSpent: "₹1,498",
     lastOrder: "2 weeks ago",
   },
   {
@@ -60,7 +60,7 @@ const customers = [
     phone: "+1 234 567 894",
     avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop",
     orders: 8,
-    totalSpent: "$7,892",
+    totalSpent: "₹7,892",
     lastOrder: "1 day ago",
   },
 ]

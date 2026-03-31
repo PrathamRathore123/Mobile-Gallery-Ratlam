@@ -2,11 +2,12 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Package, FolderTree, Video, MessageSquare, ArrowRight } from "lucide-react"
+import { Package, FolderTree, Video, MessageSquare, ArrowRight, Eye, Users, TrendingUp } from "lucide-react"
 import { useProducts } from "@/lib/hooks/use-products"
 import { useCategories } from "@/lib/hooks/use-categories"
 import { useReels } from "@/lib/hooks/use-reels"
 import { useReviews } from "@/lib/hooks/use-reviews"
+import { useWebsiteAnalytics } from "@/lib/hooks/use-website-analytics"
 
 const cards = [
   {
@@ -40,6 +41,7 @@ export default function AdminDashboard() {
   const { data: categories, loading: categoriesLoading } = useCategories()
   const { data: reels, loading: reelsLoading } = useReels()
   const { data: reviews, loading: reviewsLoading } = useReviews()
+  const { summary, loading: analyticsLoading, error: analyticsError } = useWebsiteAnalytics()
 
   const map = {
     products: { count: products.length, loading: productsLoading },
@@ -81,6 +83,61 @@ export default function AdminDashboard() {
             </Link>
           )
         })}
+      </div>
+
+      <div className="mt-8 rounded-2xl border border-border bg-card p-6">
+        <div className="mb-5">
+          <h2 className="text-lg font-semibold">Website Analytics</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Live public website traffic from Firestore events.</p>
+        </div>
+
+        {analyticsError ? (
+          <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+            {analyticsError}
+          </div>
+        ) : null}
+
+        <div className="grid gap-3 md:grid-cols-3">
+          <div className="rounded-xl border border-border bg-secondary/40 p-4">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">Total Page Views</p>
+              <Eye className="size-4 text-accent" />
+            </div>
+            <p className="text-2xl font-bold">{analyticsLoading ? "..." : summary.totalPageViews.toLocaleString()}</p>
+          </div>
+          <div className="rounded-xl border border-border bg-secondary/40 p-4">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">Unique Visitors</p>
+              <Users className="size-4 text-accent" />
+            </div>
+            <p className="text-2xl font-bold">{analyticsLoading ? "..." : summary.uniqueVisitors.toLocaleString()}</p>
+          </div>
+          <div className="rounded-xl border border-border bg-secondary/40 p-4">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">Today&apos;s Views</p>
+              <TrendingUp className="size-4 text-accent" />
+            </div>
+            <p className="text-2xl font-bold">{analyticsLoading ? "..." : summary.todayViews.toLocaleString()}</p>
+          </div>
+        </div>
+
+        <div className="mt-6">
+          <h3 className="text-sm font-semibold">Top Pages</h3>
+          <div className="mt-3 space-y-2">
+            {analyticsLoading ? (
+              <p className="text-sm text-muted-foreground">Loading page analytics...</p>
+            ) : summary.topPages.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No page view data yet.</p>
+            ) : (
+              summary.topPages.map((page) => (
+                <div key={page.path} className="flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2 text-sm">
+                  <span className="font-mono text-xs text-muted-foreground">{page.path}</span>
+                  <span className="font-medium">{page.views.toLocaleString()} views</span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="mt-8 rounded-2xl border border-border bg-card p-6">

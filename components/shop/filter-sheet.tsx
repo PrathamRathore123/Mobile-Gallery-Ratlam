@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { formatINR } from "@/lib/helpers/currency"
 import { cn } from "@/lib/utils"
 import type { Category } from "@/lib/types/entities"
 
@@ -147,8 +148,8 @@ export function FilterSheet({
                 className="w-full accent-accent"
               />
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">${priceRange[0]}</span>
-                <span className="text-sm font-medium">${priceRange[1]}</span>
+                <span className="text-sm font-medium">{formatINR(priceRange[0])}</span>
+                <span className="text-sm font-medium">{formatINR(priceRange[1])}</span>
               </div>
             </div>
           </div>

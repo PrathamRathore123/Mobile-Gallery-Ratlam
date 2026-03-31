@@ -1,12 +1,12 @@
-import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Users, Eye } from "lucide-react"
+import { TrendingUp, TrendingDown, IndianRupee, ShoppingCart, Users, Eye } from "lucide-react"
 
 const stats = [
   {
     title: "Revenue This Month",
-    value: "$48,352",
+    value: "₹48,352",
     change: "+12.5%",
     trend: "up",
-    icon: DollarSign,
+    icon: IndianRupee,
   },
   {
     title: "Orders This Month",
@@ -41,10 +41,10 @@ const salesData = [
 ]
 
 const topCategories = [
-  { name: "Smartphones", percentage: 65, revenue: "$82,450" },
-  { name: "Accessories", percentage: 18, revenue: "$22,890" },
-  { name: "Wearables", percentage: 12, revenue: "$15,230" },
-  { name: "Audio", percentage: 5, revenue: "$6,350" },
+  { name: "Smartphones", percentage: 65, revenue: "₹82,450" },
+  { name: "Accessories", percentage: 18, revenue: "₹22,890" },
+  { name: "Wearables", percentage: 12, revenue: "₹15,230" },
+  { name: "Audio", percentage: 5, revenue: "₹6,350" },
 ]
 
 export default function AdminAnalyticsPage() {

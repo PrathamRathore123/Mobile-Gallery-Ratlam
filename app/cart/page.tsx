@@ -9,6 +9,7 @@ import { useCart } from "@/lib/cart-context"
 import { Button } from "@/components/ui/button"
 import { Plus, Minus, Trash2, ShoppingBag, MessageCircle, ArrowLeft } from "lucide-react"
 import { buildWhatsAppOrderMessage, buildWhatsAppUrl } from "@/lib/helpers/whatsapp"
+import { formatINR } from "@/lib/helpers/currency"
 import { useWhatsAppNumber } from "@/lib/hooks/use-whatsapp-number"
 
 export default function CartPage() {
@@ -68,7 +69,7 @@ export default function CartPage() {
                           {item.storage ? ` | ${item.storage}` : ""}
                         </p>
                       ) : null}
-                      <p className="mt-2 text-lg font-bold">${item.price.toLocaleString()}</p>
+                      <p className="mt-2 text-lg font-bold">{formatINR(item.price)}</p>
                       <div className="mt-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <Button variant="outline" size="icon" className="size-8 rounded-full" onClick={() => updateQuantity(item.id, item.quantity - 1)}>
@@ -104,7 +105,7 @@ export default function CartPage() {
                   <div className="mb-6 space-y-3">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Subtotal</span>
-                      <span>${totalPrice.toLocaleString()}</span>
+                      <span>{formatINR(totalPrice)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Shipping</span>
@@ -113,7 +114,7 @@ export default function CartPage() {
                     <div className="border-t border-border pt-3">
                       <div className="flex justify-between">
                         <span className="font-semibold">Total</span>
-                        <span className="text-xl font-bold">${totalPrice.toLocaleString()}</span>
+                        <span className="text-xl font-bold">{formatINR(totalPrice)}</span>
                       </div>
                     </div>
                   </div>

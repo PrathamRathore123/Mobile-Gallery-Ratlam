@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { CloudinaryUpload } from "@/components/admin/cloudinary-upload"
 import { useProducts } from "@/lib/hooks/use-products"
 import { useCategories } from "@/lib/hooks/use-categories"
+import { formatINR } from "@/lib/helpers/currency"
 import { createProduct, deleteProduct, updateProduct } from "@/lib/services/products"
 import type { Product, ProductInput, StockStatus } from "@/lib/types/entities"
 
@@ -240,7 +241,7 @@ export default function AdminProductsPage() {
                     </div>
                   </td>
                   <td className="px-4 py-4">{category?.name ?? "Uncategorized"}</td>
-                  <td className="px-4 py-4">${finalPrice.toLocaleString()}</td>
+                  <td className="px-4 py-4">{formatINR(finalPrice)}</td>
                   <td className="px-4 py-4">
                     <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${product.active ? "bg-green-100 text-green-700" : "bg-slate-200 text-slate-700"}`}>{product.active ? "Active" : "Inactive"}</span>
                   </td>

@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Star, ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/lib/cart-context"
+import { formatINR } from "@/lib/helpers/currency"
 import type { Product } from "@/lib/types/entities"
 
 interface ProductCardProps {
@@ -80,9 +81,9 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-lg font-bold">${finalPrice.toLocaleString()}</span>
+            <span className="text-lg font-bold">{formatINR(finalPrice)}</span>
             {product.salePrice ? (
-              <span className="text-sm text-muted-foreground line-through">${basePrice.toLocaleString()}</span>
+              <span className="text-sm text-muted-foreground line-through">{formatINR(basePrice)}</span>
             ) : null}
           </div>
         </div>

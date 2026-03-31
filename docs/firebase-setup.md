@@ -12,6 +12,8 @@
 3. Add Cloudinary values:
    - `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`
    - `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET`
+4. Add your deployment URL:
+   - `NEXT_PUBLIC_SITE_URL` (example: `https://mobile-gallery.vercel.app`)
 
 ## 3) Firestore rules + indexes
 Use Firebase CLI in this project root:

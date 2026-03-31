@@ -5,15 +5,17 @@ import {
   doc,
   getDoc,
   getDocs,
+  onSnapshot,
   query,
   serverTimestamp,
+  type Unsubscribe,
   updateDoc,
   where,
 } from "firebase/firestore"
 import { COLLECTIONS } from "@/lib/constants/collections"
 import { db } from "@/lib/firebase/client"
 import { booleanOrDefault, numberOrDefault, stringOrDefault, toDate } from "@/lib/firebase/parsers"
-import type { Review, ReviewInput } from "@/lib/types/entities"
+import type { PublicReviewInput, Review, ReviewInput } from "@/lib/types/entities"
 
 const reviewsRef = collection(db, COLLECTIONS.reviews)
 
@@ -48,11 +50,48 @@ export async function listReviews(): Promise<Review[]> {
     .sort(compareByCreatedAtDesc)
 }
 
+export function subscribeReviews(
+  onData: (reviews: Review[]) => void,
+  onError?: (error: Error) => void
+): Unsubscribe {
+  return onSnapshot(
+    reviewsRef,
+    (snapshot) => {
+      const data = snapshot.docs
+        .map((docItem) => mapReview(docItem.id, docItem.data() as Record<string, unknown>))
+        .sort(compareByCreatedAtDesc)
+      onData(data)
+    },
+    (error) => {
+      onError?.(error)
+    }
+  )
+}
+
 export async function listActiveReviews(): Promise<Review[]> {
   const snapshot = await getDocs(query(reviewsRef, where("active", "==", true)))
   return snapshot.docs
     .map((docItem) => mapReview(docItem.id, docItem.data() as Record<string, unknown>))
     .sort(compareByCreatedAtDesc)
+}
+
+export function subscribeActiveReviews(
+  onData: (reviews: Review[]) => void,
+  onError?: (error: Error) => void
+): Unsubscribe {
+  const activeQuery = query(reviewsRef, where("active", "==", true))
+  return onSnapshot(
+    activeQuery,
+    (snapshot) => {
+      const data = snapshot.docs
+        .map((docItem) => mapReview(docItem.id, docItem.data() as Record<string, unknown>))
+        .sort(compareByCreatedAtDesc)
+      onData(data)
+    },
+    (error) => {
+      onError?.(error)
+    }
+  )
 }
 
 export async function listFeaturedReviews(max = 6): Promise<Review[]> {
@@ -73,6 +112,35 @@ export async function getReviewById(id: string): Promise<Review | null> {
 export async function createReview(input: ReviewInput): Promise<string> {
   const result = await addDoc(reviewsRef, {
     ...input,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  })
+
+  return result.id
+}
+
+export async function submitPublicReview(input: PublicReviewInput): Promise<string> {
+  const customerName = input.customerName.trim()
+  const comment = input.comment.trim()
+  const sourceUrl = input.sourceUrl?.trim() || null
+  const rating = Math.min(5, Math.max(1, Math.round(input.rating)))
+
+  if (customerName.length < 2) {
+    throw new Error("Please enter your name.")
+  }
+
+  if (comment.length < 10) {
+    throw new Error("Please add at least 10 characters in your review.")
+  }
+
+  const result = await addDoc(reviewsRef, {
+    customerName,
+    rating,
+    comment,
+    sourceUrl,
+    productId: null,
+    featured: false,
+    active: true,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   })

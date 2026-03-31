@@ -27,12 +27,12 @@ export function HeroSection() {
         <div className="grid items-center gap-8 lg:grid-cols-2">
           <motion.div className="space-y-6 text-center lg:text-left" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}>
             <div className="font-power inline-flex items-center gap-2 rounded-full bg-primary-foreground/10 px-4 py-2 text-sm">
-              <span className="size-2 animate-pulse rounded-full bg-accent" />
+              <span className="size-2 text-white animate-pulse rounded-full bg-accent" />
               Trusted by 50K+ shoppers
             </div>
-            <h1 className="font-luxury text-balance text-4xl font-semibold leading-tight md:text-5xl lg:text-6xl">
+            <h1 className="font-luxury text-white text-balance text-4xl font-semibold leading-tight md:text-5xl lg:text-6xl">
               {settings.heroTitle || "Premium smartphones for "}
-              <span className="font-modern text-accent">Modern Life</span>
+              <span className="font-modern text-accent"> Modern Life</span>
             </h1>
             <p className="mx-auto max-w-md text-lg text-primary-foreground/80 lg:mx-0">
               {settings.heroSubtitle || "Discover flagship phones, accessories, and quick support with a frictionless WhatsApp checkout flow."}

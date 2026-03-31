@@ -12,6 +12,7 @@ import { SlidersHorizontal, ChevronDown } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useActiveProducts } from "@/lib/hooks/use-products"
 import { useActiveCategories } from "@/lib/hooks/use-categories"
+import { formatINR } from "@/lib/helpers/currency"
 
 const sortOptions = [
   { label: "Featured", value: "featured" },
@@ -119,7 +120,7 @@ export default function ShopPage() {
                 <div className="flex items-center justify-between"><h2 className="font-semibold">Filters</h2>{activeFiltersCount > 0 ? <Button variant="ghost" size="sm" className="h-auto p-0 text-accent" onClick={clearFilters}>Clear all</Button> : null}</div>
                 <div><h3 className="mb-3 text-sm font-medium">Categories</h3><div className="space-y-2">{categories.map((category) => <label key={category.id} className="flex cursor-pointer items-center gap-2"><input type="checkbox" checked={selectedCategories.includes(category.id)} onChange={(event) => event.target.checked ? setSelectedCategories([...selectedCategories, category.id]) : setSelectedCategories(selectedCategories.filter((item) => item !== category.id))} className="size-4 rounded border-border accent-accent" /><span className="text-sm">{category.name}</span></label>)}</div></div>
                 <div><h3 className="mb-3 text-sm font-medium">Brands</h3><div className="space-y-2">{brands.map((brand) => <label key={brand} className="flex cursor-pointer items-center gap-2"><input type="checkbox" checked={selectedBrands.includes(brand)} onChange={(event) => event.target.checked ? setSelectedBrands([...selectedBrands, brand]) : setSelectedBrands(selectedBrands.filter((item) => item !== brand))} className="size-4 rounded border-border accent-accent" /><span className="text-sm">{brand}</span></label>)}</div></div>
-                <div><h3 className="mb-3 text-sm font-medium">Price Range</h3><div className="space-y-3"><input type="range" min="0" max={Math.max(1, maxPrice)} value={Math.min(effectiveMaxPrice, Math.max(1, maxPrice))} onChange={(event) => handlePriceRangeChange([effectiveMinPrice, Number(event.target.value)])} className="w-full accent-accent" /><div className="flex items-center justify-between text-sm text-muted-foreground"><span>${effectiveMinPrice}</span><span>${effectiveMaxPrice}</span></div></div></div>
+                <div><h3 className="mb-3 text-sm font-medium">Price Range</h3><div className="space-y-3"><input type="range" min="0" max={Math.max(1, maxPrice)} value={Math.min(effectiveMaxPrice, Math.max(1, maxPrice))} onChange={(event) => handlePriceRangeChange([effectiveMinPrice, Number(event.target.value)])} className="w-full accent-accent" /><div className="flex items-center justify-between text-sm text-muted-foreground"><span>{formatINR(effectiveMinPrice)}</span><span>{formatINR(effectiveMaxPrice)}</span></div></div></div>
               </div>
             </aside>
 
